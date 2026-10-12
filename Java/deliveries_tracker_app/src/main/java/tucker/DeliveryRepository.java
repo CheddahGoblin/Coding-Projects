@@ -18,6 +18,9 @@ public interface DeliveryRepository {
     /** Every archived delivery (delivered AND paid), any date. */
     List<Delivery> findArchived();
 
+    /** Save a brand-new delivery. (A database version would INSERT and generate the id.) */
+    void add(Delivery delivery);
+
     /** Called whenever a delivery's delivered/paid flags change. Persist it here. */
     void update(Delivery delivery);
 }

@@ -13,29 +13,31 @@ public class SampleDeliveryRepository implements DeliveryRepository {
 
     public SampleDeliveryRepository() {
         LocalDate t = LocalDate.now();
-        //  date            time               name                        address                   materials                delivered paid
-        add(t,             LocalTime.of(8, 0),  "Greenfield Builders",      "412 Oak Ridge Rd",       "6 yd Topsoil",           false, false);
-        add(t,             LocalTime.of(13, 30),"Maria Alvarez",            "88 Lakeview Ct",         "3 yd Cedar Mulch",       true,  false);
-        add(t.plusDays(1), LocalTime.of(9, 15), "Summit Landscaping",       "1500 Industrial Blvd",   "12 ton Crushed Granite", false, false);
-        add(t.plusDays(1), LocalTime.of(11, 0), "Tom Becker",               "27 Birch Lane",          "2 yd Pea Gravel",        false, false);
-        add(t.plusDays(2), LocalTime.of(7, 30), "Hillcrest HOA",            "300 Hillcrest Dr",       "20 yd Black Mulch",      false, false);
-        add(t.plusDays(3), LocalTime.of(14, 0), "Dana Whitfield",           "9 Maple Ave",            "4 yd Compost Blend",     false, true);
-        add(t.plusDays(4), LocalTime.of(10, 45),"Northside Nursery",        "6120 County Rd 12",      "8 yd Sand",              false, false);
-        add(t.plusDays(6), LocalTime.of(8, 30), "Alder & Sons Construction","75 Prairie View Way",    "15 ton Road Base",       false, false);
-        add(t.plusDays(6), LocalTime.of(15, 15),"Karen Liu",                "1001 Elm St",            "1 yd River Rock",        false, false);
-        // overdue: delivered but not paid / paid but not delivered (should show in red)
-        add(t.minusDays(3),LocalTime.of(9, 30), "Riverbend Homes",          "18 Riverbend Rd",        "7 yd Topsoil",           true,  false);
-        add(t.minusDays(1),LocalTime.of(15, 0), "Sandra Kowalski",          "340 Pine St",            "2 yd Mulch",             false, true);
+        //  date            time                name                         address                phone           pay      amount   material                price      delivered paid
+        add(t,             LocalTime.of(8, 0),  "Greenfield Builders",       "412 Oak Ridge Rd",    "612-555-0101", "Check", "6 yd",  "Top Soil",             "$32/yd",  false, false);
+        add(t,             LocalTime.of(13, 30),"Maria Alvarez",             "88 Lakeview Ct",      "612-555-0102", "Cash",  "3 yd",  "Brown Mulch",          "$35/yd",  true,  false);
+        add(t.plusDays(1), LocalTime.of(9, 15), "Summit Landscaping",        "1500 Industrial Blvd","612-555-0103", "Check", "12 ton","#57 Limestone",        "$28/ton", false, false);
+        add(t.plusDays(1), LocalTime.of(11, 0), "Tom Becker",                "27 Birch Lane",       "612-555-0104", "Cash",  "2 yd",  "#8 River Rock",        "$60/yd",  false, false);
+        add(t.plusDays(2), LocalTime.of(7, 30), "Hillcrest HOA",             "300 Hillcrest Dr",    "612-555-0105", "Check", "20 yd", "Black Mulch",          "$34/yd",  false, false);
+        add(t.plusDays(3), LocalTime.of(14, 0), "Dana Whitfield",            "9 Maple Ave",         "612-555-0106", "Cash",  "4 yd",  "Compost",              "$40/yd",  false, true);
+        add(t.plusDays(4), LocalTime.of(10, 45),"Northside Nursery",         "6120 County Rd 12",   "612-555-0107", "Check", "8 yd",  "Concrete Sand",        "$22/yd",  false, false);
+        add(t.plusDays(6), LocalTime.of(8, 30), "Alder & Sons Construction", "75 Prairie View Way", "612-555-0108", "Check", "15 ton","#617 Limestone",       "$24/ton", false, false);
+        add(t.plusDays(6), LocalTime.of(15, 15),"Karen Liu",                 "1001 Elm St",         "612-555-0109", "Cash",  "1 yd",  "Mojave Stone",         "$95/yd",  false, false);
+        // overdue: delivered but not paid / paid but not delivered (shows in red)
+        add(t.minusDays(3),LocalTime.of(9, 30), "Riverbend Homes",           "18 Riverbend Rd",     "612-555-0110", "Check", "7 yd",  "Top Soil",             "$32/yd",  true,  false);
+        add(t.minusDays(1),LocalTime.of(15, 0), "Sandra Kowalski",           "340 Pine St",         "612-555-0111", "Cash",  "2 yd",  "Red Mulch",            "$36/yd",  false, true);
         // outside the 7-day window
-        add(t.plusDays(12),LocalTime.of(9, 0),  "Future Customer",          "1 Later St",             "5 yd Topsoil",           false, false);
+        add(t.plusDays(12),LocalTime.of(9, 0),  "Future Customer",           "1 Later St",          "612-555-0112", "Cash",  "5 yd",  "Top Soil",             "$32/yd",  false, false);
         // already archived (delivered + paid)
-        add(t.minusDays(2),LocalTime.of(9, 0),  "Past Customer",            "2 Earlier St",           "5 yd Mulch",             true,  true);
-        add(t.minusDays(5),LocalTime.of(10, 30),"Oakwood Apartments",       "50 Oakwood Cir",         "10 yd Topsoil",          true,  true);
-        add(t.minusDays(9),LocalTime.of(14, 0), "Bob Nguyen",               "711 Cedar St",           "3 yd Gravel",            true,  true);
+        add(t.minusDays(2),LocalTime.of(9, 0),  "Past Customer",             "2 Earlier St",        "612-555-0113", "Cash",  "5 yd",  "Cinnamon Mulch",       "$38/yd",  true,  true);
+        add(t.minusDays(5),LocalTime.of(10, 30),"Oakwood Apartments",        "50 Oakwood Cir",      "612-555-0114", "Check", "10 yd", "Garden Soil",          "$42/yd",  true,  true);
+        add(t.minusDays(9),LocalTime.of(14, 0), "Bob Nguyen",                "711 Cedar St",        "612-555-0115", "Cash",  "3 yd",  "Canadian Blue Stone",  "$110/yd", true,  true);
     }
 
-    private void add(LocalDate d, LocalTime t, String name, String addr, String mat, boolean delivered, boolean paid) {
-        data.add(new Delivery(nextId++, d, t, name, addr, mat, delivered, paid));
+    private void add(LocalDate d, LocalTime time, String name, String addr, String phone, String pay,
+                     String amount, String material, String price, boolean delivered, boolean paid) {
+        data.add(new Delivery(nextId++, d, time, name, addr, phone, pay,
+                List.of(new MaterialLine(material, amount, price)), delivered, paid));
     }
 
     @Override
@@ -49,6 +51,11 @@ public class SampleDeliveryRepository implements DeliveryRepository {
     @Override
     public List<Delivery> findArchived() {
         return data.stream().filter(Delivery::isArchived).toList();
+    }
+
+    @Override
+    public void add(Delivery delivery) {
+        data.add(delivery);
     }
 
     @Override
