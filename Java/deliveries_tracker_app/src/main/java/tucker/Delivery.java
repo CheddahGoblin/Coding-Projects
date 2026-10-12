@@ -22,11 +22,12 @@ public class Delivery {
     private String phone;
     private String paymentType; // "Cash" or "Check"
     private List<MaterialLine> items;
+    private String notes;
     private final BooleanProperty delivered = new SimpleBooleanProperty();
     private final BooleanProperty paid = new SimpleBooleanProperty();
 
     public Delivery(long id, LocalDate date, LocalTime time, String customerName, String address,
-                    String phone, String paymentType, List<MaterialLine> items,
+                    String phone, String paymentType, List<MaterialLine> items, String notes,
                     boolean delivered, boolean paid) {
         this.id = id;
         this.date = date;
@@ -36,13 +37,14 @@ public class Delivery {
         this.phone = phone;
         this.paymentType = paymentType;
         this.items = List.copyOf(items);
+        this.notes = notes == null ? "" : notes;
         this.delivered.set(delivered);
         this.paid.set(paid);
     }
 
     /** Replaces the editable details (used by the Edit window). Delivered/paid are left alone. */
     public void edit(LocalDate date, LocalTime time, String customerName, String address,
-                     String phone, String paymentType, List<MaterialLine> items) {
+                     String phone, String paymentType, List<MaterialLine> items, String notes) {
         this.date = date;
         this.time = time;
         this.customerName = customerName;
@@ -50,6 +52,7 @@ public class Delivery {
         this.phone = phone;
         this.paymentType = paymentType;
         this.items = List.copyOf(items);
+        this.notes = notes == null ? "" : notes;
     }
 
     public long id() { return id; }
@@ -60,6 +63,7 @@ public class Delivery {
     public String phone() { return phone; }
     public String paymentType() { return paymentType; }
     public List<MaterialLine> items() { return items; }
+    public String notes() { return notes; }
 
     /** One-line summary for the table, e.g. "3 yd Brown Mulch @ $35/yd, 2 yd Top Soil @ $30/yd". */
     public String materials() {

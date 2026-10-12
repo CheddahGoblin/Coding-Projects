@@ -346,6 +346,9 @@ public class DashboardApp extends Application {
         addDetail(g, 1, "Phone", new Label(orDash(d.phone())));
         addDetail(g, 2, "Payment type", new Label(orDash(d.paymentType())));
         addDetail(g, 3, "Materials", materialLines);
+        Label notesLabel = wrapLabel(orDash(d.notes()));
+        notesLabel.setMaxWidth(600);
+        addDetail(g, 4, "Notes", notesLabel);
 
         Button edit = new Button("Edit Delivery");
         edit.setOnAction(e -> openEditDialog(d));

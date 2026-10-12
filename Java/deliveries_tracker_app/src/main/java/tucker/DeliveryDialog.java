@@ -92,6 +92,7 @@ public class DeliveryDialog extends Stage {
     private final RadioButton checkRadio = new RadioButton("Check");
     private final List<MaterialRow> rows = new ArrayList<>();
     private final Label errorLabel = new Label();
+    private final TextArea notesArea = new TextArea();
     private final Delivery existing; // null when creating a new delivery
 
     /** Opens an empty form to create a new delivery. */
@@ -158,7 +159,15 @@ public class DeliveryDialog extends Stage {
             }
         }
 
-        VBox content = new VBox(14, form, new Separator(), materialsBox);
+        // ----- Notes (bottom of the form) -----
+        Label notesTitle = new Label("Notes");
+        notesTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        notesArea.setPromptText("Gate code, where to drop the load, special instructions...");
+        notesArea.setWrapText(true);
+        notesArea.setPrefRowCount(4);
+        VBox notesBox = new VBox(6, notesTitle, notesArea);
+
+        VBox content = new VBox(14, form, new Separator(), materialsBox, new Separator(), notesBox);
         content.setPadding(new Insets(16));
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
@@ -190,6 +199,7 @@ public class DeliveryDialog extends Stage {
         nameField.setText(d.customerName());
         addressField.setText(d.address());
         phoneField.setText(d.phone() == null ? "" : d.phone());
+        notesArea.setText(d.notes());
         datePicker.setValue(d.date());
 
         if (!timeBox.getItems().contains(d.time())) { // a time that isn't on the 15-minute list
@@ -252,12 +262,13 @@ public class DeliveryDialog extends Stage {
 
         String payment = cashRadio.isSelected() ? "Cash" : "Check";
         String phone = phoneField.getText().trim();
+        String notes = notesArea.getText().trim();
         if (existing == null) {
             // id 0 = "not assigned yet"; the database will generate the real one later.
             onSave.accept(new Delivery(0, date, timeBox.getValue(), name, address,
-                    phone, payment, lines, false, false));
+                    phone, payment, lines, notes, false, false));
         } else {
-            existing.edit(date, timeBox.getValue(), name, address, phone, payment, lines);
+            existing.edit(date, timeBox.getValue(), name, address, phone, payment, lines, notes);
             onSave.accept(existing);
         }
         close();
