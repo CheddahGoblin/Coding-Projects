@@ -181,12 +181,20 @@ public class DashboardApp extends Application {
         sorted.comparatorProperty().bind(table.comparatorProperty());
         table.setItems(sorted);
 
-        // Highlight today's deliveries (dashboard view only)
+        // Dashboard only: red = overdue (past date, not yet delivered AND paid), green = today
         table.setRowFactory(tv -> new TableRow<>() {
             @Override protected void updateItem(Delivery d, boolean empty) {
                 super.updateItem(d, empty);
-                boolean today = !archiveMode && !empty && d != null && d.date().equals(LocalDate.now());
-                setStyle(today ? "-fx-background-color: #e8f5e9;" : "");
+                String style = "";
+                if (!archiveMode && !empty && d != null) {
+                    LocalDate today = LocalDate.now();
+                    if (d.date().isBefore(today)) {
+                        style = "-fx-background-color: #ffcdd2;";
+                    } else if (d.date().equals(today)) {
+                        style = "-fx-background-color: #e8f5e9;";
+                    }
+                }
+                setStyle(style);
             }
         });
     }
@@ -203,7 +211,7 @@ public class DashboardApp extends Application {
         int n = visible.size();
         countLabel.setText(archiveMode
                 ? n + " archived deliveries"
-                : n + " deliveries in the next 7 days");
+                : n + " open deliveries (overdue + next 7 days)");
     }
 
     // ---------- Mode switching / data ----------
@@ -220,11 +228,10 @@ public class DashboardApp extends Application {
             deliveries.setAll(repository.findArchived());
         } else {
             titleLabel.setText("Upcoming Deliveries");
-            rangeLabel.setText("Next 7 days: " + today.format(DATE_FMT)
-                    + " – " + today.plusDays(6).format(DATE_FMT));
+            rangeLabel.setText("Overdue + next 7 days (through " + today.plusDays(6).format(DATE_FMT) + ")");
             archiveButton.setText("Archive");
-            table.setPlaceholder(new Label("No deliveries scheduled for the next 7 days."));
-            deliveries.setAll(repository.findActiveBetween(today, today.plusDays(6)));
+            table.setPlaceholder(new Label("No open or upcoming deliveries."));
+            deliveries.setAll(repository.findActiveThrough(today.plusDays(6)));
         }
 
         // Dashboard: soonest first. Archive: most recent first.

@@ -9,8 +9,11 @@ import java.util.List;
  */
 public interface DeliveryRepository {
 
-    /** Deliveries dated between from and to (inclusive) that are NOT archived. */
-    List<Delivery> findActiveBetween(LocalDate from, LocalDate to);
+    /**
+     * Every delivery that is NOT archived and is dated on or before the given date.
+     * This includes overdue deliveries (past dates that aren't yet delivered AND paid).
+     */
+    List<Delivery> findActiveThrough(LocalDate lastDate);
 
     /** Every archived delivery (delivered AND paid), any date. */
     List<Delivery> findArchived();

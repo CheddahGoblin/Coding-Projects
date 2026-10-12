@@ -23,6 +23,9 @@ public class SampleDeliveryRepository implements DeliveryRepository {
         add(t.plusDays(4), LocalTime.of(10, 45),"Northside Nursery",        "6120 County Rd 12",      "8 yd Sand",              false, false);
         add(t.plusDays(6), LocalTime.of(8, 30), "Alder & Sons Construction","75 Prairie View Way",    "15 ton Road Base",       false, false);
         add(t.plusDays(6), LocalTime.of(15, 15),"Karen Liu",                "1001 Elm St",            "1 yd River Rock",        false, false);
+        // overdue: delivered but not paid / paid but not delivered (should show in red)
+        add(t.minusDays(3),LocalTime.of(9, 30), "Riverbend Homes",          "18 Riverbend Rd",        "7 yd Topsoil",           true,  false);
+        add(t.minusDays(1),LocalTime.of(15, 0), "Sandra Kowalski",          "340 Pine St",            "2 yd Mulch",             false, true);
         // outside the 7-day window
         add(t.plusDays(12),LocalTime.of(9, 0),  "Future Customer",          "1 Later St",             "5 yd Topsoil",           false, false);
         // already archived (delivered + paid)
@@ -36,10 +39,10 @@ public class SampleDeliveryRepository implements DeliveryRepository {
     }
 
     @Override
-    public List<Delivery> findActiveBetween(LocalDate from, LocalDate to) {
+    public List<Delivery> findActiveThrough(LocalDate lastDate) {
         return data.stream()
                 .filter(d -> !d.isArchived())
-                .filter(d -> !d.date().isBefore(from) && !d.date().isAfter(to))
+                .filter(d -> !d.date().isAfter(lastDate))
                 .toList();
     }
 
