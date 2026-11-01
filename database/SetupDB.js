@@ -1,5 +1,4 @@
 // Connects to Supabase Postgres, runs schema.sql, and prints a quick check.
-// Usage:  npm install pg dotenv   then   node setup-db.js
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');

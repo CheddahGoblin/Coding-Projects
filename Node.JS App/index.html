@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Franklin Landscaping</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f2;
+            text-align: center;
+        }
+
+        header {
+            background-color: #2e6b3f;
+            color: white;
+            padding: 30px;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .login-container {
+            background: white;
+            width: 300px;
+            margin: 60px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            background-color: #2e6b3f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #245532;
+        }
+
+        .switch {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .switch a {
+            color: #2e6b3f;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #777;
+            margin: 0;
+        }
+
+        #error {
+            color: red;
+            font-size: 14px;
+            min-height: 18px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Franklin Landscaping</h1>
+</header>
+
+<div class="login-container">
+
+    <!-- Customer login -->
+    <div id="login-section">
+        <h2>Customer Login</h2>
+
+        <form action="/login" method="POST">
+            <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                autocomplete="email"
+                required
+            >
+
+            <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                autocomplete="current-password"
+                required
+            >
+
+            <button type="submit">Login</button>
+        </form>
+
+        <p class="switch">
+            New customer? <a onclick="showForm('register')">Create an account</a>
+        </p>
+    </div>
+
+    <!-- Create account -->
+    <div id="register-section" class="hidden">
+        <h2>Create Account</h2>
+
+        <form id="register-form" action="/register" method="POST">
+            <input
+                type="text"
+                name="fullName"
+                placeholder="Full Name"
+                autocomplete="name"
+                maxlength="100"
+                required
+            >
+
+            <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                autocomplete="email"
+                required
+            >
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Password"
+                autocomplete="new-password"
+                minlength="8"
+                maxlength="72"
+                required
+            >
+            <p class="hint">At least 8 characters</p>
+
+            <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                autocomplete="new-password"
+                minlength="8"
+                maxlength="72"
+                required
+            >
+
+            <button type="submit">Create Account</button>
+        </form>
+
+        <p class="switch">
+            Already have an account? <a onclick="showForm('login')">Log in</a>
+        </p>
+    </div>
+
+    <p id="error"></p>
+</div>
+
+<script>
+    const messages = {
+        login:    'Invalid email or password. Please try again.',
+        exists:   'An account with that email already exists. Try logging in instead.',
+        invalid:  'Please enter your name and a valid email address.',
+        weak:     'Your password must be 8 to 72 characters long.',
+        mismatch: 'The passwords you entered do not match.',
+        server:   'Something went wrong on our end. Please try again.'
+    };
+
+    function showForm(name) {
+        document.getElementById('login-section').classList.toggle('hidden', name !== 'login');
+        document.getElementById('register-section').classList.toggle('hidden', name !== 'register');
+        document.getElementById('error').textContent = '';
+    }
+
+    // Show the right form and any error message sent back by the server
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get('form') === 'register') {
+        showForm('register');
+    }
+
+    if (params.has('error')) {
+        document.getElementById('error').textContent =
+            messages[params.get('error')] || messages.server;
+    }
+
+    // Catch mismatched passwords before the form is sent
+    document.getElementById('register-form').addEventListener('submit', function (e) {
+        if (document.getElementById('password').value !==
+            document.getElementById('confirmPassword').value) {
+            e.preventDefault();
+            document.getElementById('error').textContent = messages.mismatch;
+        }
+    });
+</script>
+
+</body>
+</html>
