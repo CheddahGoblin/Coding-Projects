@@ -2,6 +2,7 @@ package tucker;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The dashboard only talks to this interface. Later, write a JDBC/SQLite/PostgreSQL
@@ -23,4 +24,10 @@ public interface DeliveryRepository {
 
     /** Called whenever a delivery's delivered/paid flags change. Persist it here. */
     void update(Delivery delivery);
+
+    /**find every delivery,oldest first */
+    List<Delivery> findAll();
+
+    /**find one delivery by id */
+    Optional<Delivery> findById(long id);
 }

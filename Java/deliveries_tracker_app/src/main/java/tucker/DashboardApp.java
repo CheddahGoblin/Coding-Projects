@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class DashboardApp extends Application {
@@ -34,14 +35,9 @@ public class DashboardApp extends Application {
     private static final DateTimeFormatter FULL_DATE_FMT = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("h:mm a");
 
-    private enum SortKey {
-        DATE("Date"), TIME("Time"), NAME("Name"), ADDRESS("Address");
-        final String label;
-        SortKey(String label) { this.label = label; }
-    }
-
-    // Swap this for a database-backed implementation later.
-    private final DeliveryRepository repository = new SampleDeliveryRepository();
+    // Opened in start() from the DATABASE_URL environment variable (the hosted Supabase database) or the local DB.
+    private DeliveryRepository repository;
+    private DeliveryService service;
 
     private boolean archiveMode = false;
     private String emptyMessage = "";
@@ -75,6 +71,23 @@ public class DashboardApp extends Application {
     @Override
     public void start(Stage stage) {
         this.stage = stage;
+
+        try {
+            Optional<DatabaseConfig> hosted = DatabaseConfig.fromEnvironment(); // DATABASE_URL (Supabase)
+            if (hosted.isPresent()) {
+                repository = new PostgresDeliveryRepository(hosted.get());
+                stage.setTitle("Delivery Dashboard (Supabase)");
+            } else {
+                // TEMPORARY: no DATABASE_URL, so use a local file database (deliveries-local.mv.db)
+                repository = PostgresDeliveryRepository.local("./deliveries-local");
+                stage.setTitle("Delivery Dashboard (LOCAL test database)");
+            }
+        } catch (DatabaseException | IllegalArgumentException e) {
+            new Alert(Alert.AlertType.ERROR, e.getMessage()).showAndWait();
+            Platform.exit();
+            return;
+        }
+        service = new DeliveryService(repository);
 
         rowsBox.setStyle("-fx-background-color: white;");
         scroll.setFitToWidth(true);
@@ -157,26 +170,12 @@ public class DashboardApp extends Application {
     private void applySort() {
         SortKey key = sortBy.getValue() == null ? SortKey.DATE : sortBy.getValue();
         boolean desc = descendingToggle.isSelected();
-        sorted.setComparator(buildComparator(key, desc));
+        sorted.setComparator(DeliverySorting.comparator(key, desc));
 
         for (Map.Entry<SortKey, Label> e : headerLabels.entrySet()) {
             String arrow = e.getKey() == key ? (desc ? "  ↓" : "  ↑") : "";
             e.getValue().setText(e.getKey().label + arrow);
         }
-    }
-
-    private Comparator<Delivery> buildComparator(SortKey key, boolean desc) {
-        Comparator<Delivery> byDateTime =
-                Comparator.comparing(Delivery::date).thenComparing(Delivery::time);
-        Comparator<Delivery> c = switch (key) {
-            case DATE -> byDateTime;
-            case TIME -> Comparator.comparing(Delivery::time).thenComparing(Delivery::date);
-            case NAME -> Comparator.comparing(Delivery::customerName, String.CASE_INSENSITIVE_ORDER)
-                    .thenComparing(byDateTime);
-            case ADDRESS -> Comparator.comparing(Delivery::address, String.CASE_INSENSITIVE_ORDER)
-                    .thenComparing(byDateTime);
-        };
-        return desc ? c.reversed() : c;
     }
 
     private void headerClicked(SortKey key) {
@@ -384,7 +383,7 @@ public class DashboardApp extends Application {
         String bg = "transparent";
         if (!archiveMode) {
             LocalDate today = LocalDate.now();
-            if (d.date().isBefore(today)) bg = "#ffcdd2";
+            if (d.isOverdue(today)) bg = "#ffcdd2";
             else if (d.date().equals(today)) bg = "#e8f5e9";
         }
         return "-fx-background-color: " + bg + "; -fx-border-color: transparent transparent #dcdcdc transparent;";
@@ -442,17 +441,17 @@ public class DashboardApp extends Application {
     }
 
     private void openAddDialog() {
-        new DeliveryDialog(stage, delivery -> {
-            repository.add(delivery);
-            loadDeliveries();
-        }).show();
+        new DeliveryDialog(stage, service, delivery -> loadDeliveries()).show();
     }
 
     private void openEditDialog(Delivery delivery) {
-        new DeliveryDialog(stage, delivery, edited -> {
-            repository.update(edited);
-            loadDeliveries(); // re-sorts / re-filters in case the date changed
-        }).show();
+        // loadDeliveries() re-sorts / re-filters in case the date changed
+        new DeliveryDialog(stage, service, delivery, edited -> loadDeliveries()).show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        if (repository instanceof AutoCloseable closeable) closeable.close();
     }
 
     public static void main(String[] args) {

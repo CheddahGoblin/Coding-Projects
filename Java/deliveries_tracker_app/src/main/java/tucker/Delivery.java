@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  */
 public class Delivery {
 
-    private final long id;
+    private long id;
     private LocalDate date;
     private LocalTime time;
     private String customerName;
@@ -56,6 +56,9 @@ public class Delivery {
     }
 
     public long id() { return id; }
+
+    /** Called by the repository once the database has assigned this delivery its id. */
+    public void setId(long id) { this.id = id; }
     public LocalDate date() { return date; }
     public LocalTime time() { return time; }
     public String customerName() { return customerName; }
@@ -77,4 +80,9 @@ public class Delivery {
 
     /** A delivery is archived once it has been both delivered and paid. */
     public boolean isArchived() { return delivered.get() && paid.get(); }
+
+    /** Overdue = dated before today and not yet archived (delivered AND paid). */
+    public boolean isOverdue(LocalDate today) {
+        return !isArchived() && date.isBefore(today);
+    }
 }

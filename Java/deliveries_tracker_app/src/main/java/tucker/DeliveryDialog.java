@@ -94,14 +94,16 @@ public class DeliveryDialog extends Stage {
     private final Label errorLabel = new Label();
     private final TextArea notesArea = new TextArea();
     private final Delivery existing; // null when creating a new delivery
+    private final DeliveryService service;
 
     /** Opens an empty form to create a new delivery. */
-    public DeliveryDialog(Window owner, Consumer<Delivery> onSave) {
-        this(owner, null, onSave);
+    public DeliveryDialog(Window owner, DeliveryService service, Consumer<Delivery> onSave) {
+        this(owner, service, null, onSave);
     }
 
     /** Opens the form pre-filled with an existing delivery; saving updates that delivery. */
-    public DeliveryDialog(Window owner, Delivery existing, Consumer<Delivery> onSave) {
+    public DeliveryDialog(Window owner, DeliveryService service, Delivery existing, Consumer<Delivery> onSave) {
+        this.service = service;
         this.existing = existing;
         initOwner(owner);
         initModality(Modality.WINDOW_MODAL);
@@ -235,42 +237,25 @@ public class DeliveryDialog extends Stage {
     }
 
     private void save(Consumer<Delivery> onSave) {
-        String name = nameField.getText().trim();
-        String address = addressField.getText().trim();
-        LocalDate date = datePicker.getValue();
-
-        if (name.isEmpty()) { error("Name is required."); return; }
-        if (address.isEmpty()) { error("Address is required."); return; }
-        if (date == null) { error("Pick a delivery date."); return; }
-        if (!cashRadio.isSelected() && !checkRadio.isSelected()) { error("Choose cash or check."); return; }
-
+        // Collect what's typed; the service validates it and saves it.
         List<MaterialLine> lines = new ArrayList<>();
         for (MaterialRow r : rows) {
             if (!r.box.isSelected()) continue;
-
-            String label = r.name;
-            if (r.name.equals("Other")) {
-                label = r.description.getText().trim();
-                if (label.isEmpty()) { error("Describe the \"Other\" material."); return; }
-            }
-            String amount = r.amount.getText().trim();
-            if (amount.isEmpty()) { error("Enter an amount for " + label + "."); return; }
-
-            lines.add(new MaterialLine(label, amount, r.price.getText().trim()));
+            String label = r.name.equals("Other") ? r.description.getText() : r.name;
+            lines.add(new MaterialLine(label, r.amount.getText(), r.price.getText()));
         }
-        if (lines.isEmpty()) { error("Select at least one material."); return; }
+        String payment = cashRadio.isSelected() ? "Cash" : checkRadio.isSelected() ? "Check" : "";
 
-        String payment = cashRadio.isSelected() ? "Cash" : "Check";
-        String phone = phoneField.getText().trim();
-        String notes = notesArea.getText().trim();
-        if (existing == null) {
-            // id 0 = "not assigned yet"; the database will generate the real one later.
-            onSave.accept(new Delivery(0, date, timeBox.getValue(), name, address,
-                    phone, payment, lines, notes, false, false));
-        } else {
-            existing.edit(date, timeBox.getValue(), name, address, phone, payment, lines, notes);
-            onSave.accept(existing);
+        DeliveryForm form = new DeliveryForm(nameField.getText(), addressField.getText(),
+                phoneField.getText(), datePicker.getValue(), timeBox.getValue(), payment,
+                lines, notesArea.getText());
+
+        SaveResult result = existing == null ? service.create(form) : service.edit(existing, form);
+        if (!result.success()) {
+            error(result.errors().get(0));
+            return;
         }
+        onSave.accept(result.delivery());
         close();
     }
 
